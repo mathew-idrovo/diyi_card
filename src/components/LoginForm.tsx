@@ -2,16 +2,45 @@
 
 import { Button, Input } from "@nextui-org/react";
 import { IconEye, IconEyeOff } from "@tabler/icons-react";
-import React, { useState } from "react";
+import React, { useState, useTransition } from "react";
+
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { loginSchema } from "@/lib/zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import { loginAction } from "@/actions/auth-actions";
 
 export const LoginForm = () => {
-  const [showError, setShowError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [valuePassword, setValuePassword] = useState(false);
   const [valueEmail, setValueEmail] = useState(false);
   const [isVisible, setIsVisible] = React.useState(false);
+  const router = useRouter();
 
   const toggleVisibility = () => setIsVisible(!isVisible);
+
+  const form = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  async function onSubmit(values: z.infer<typeof loginSchema>) {
+    setError(null);
+    startTransition(async () => {
+      const response = await loginAction(values);
+      if (response.error) {
+        setError(response.error);
+      } else {
+        router.push("/dashboard");
+      }
+    });
+  }
   return (
     <>
       <div className="flex h-screen items-center justify-center bg-green-300">
@@ -19,7 +48,10 @@ export const LoginForm = () => {
           <h1 className="mb-8 text-center text-3xl font-bold text-black">
             Iniciar Sesión
           </h1>
-          <form className="flex flex-col gap-6">
+          <form
+            className="flex flex-col gap-6"
+            onSubmit={form.handleSubmit(onSubmit)}
+          >
             <Input
               type="email"
               label="Usuario"

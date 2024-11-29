@@ -1,41 +1,41 @@
 "use client";
 
-import { Button, Input } from "@nextui-org/react";
-import { IconEye, IconEyeOff } from "@tabler/icons-react";
-import React, { useState, useTransition } from "react";
-
+import { registerSchema } from "@/lib/zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { loginSchema } from "@/lib/zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
-import { loginAction } from "@/actions/auth-actions";
 
-export const LoginForm = () => {
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
+import { registerAction } from "@/actions/auth-actions";
+import { Button, Input } from "@nextui-org/react";
+import { IconEye, IconEyeOff } from "@tabler/icons-react";
+
+const FormRegister = () => {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-  const [passwordVisible, setPasswordVisible] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
   const router = useRouter();
-
+  const [isVisible, setIsVisible] = useState(false);
   const toggleVisibility = () => setIsVisible(!isVisible);
 
-  const form = useForm<z.infer<typeof loginSchema>>({
-    resolver: zodResolver(loginSchema),
+  const form = useForm<z.infer<typeof registerSchema>>({
+    resolver: zodResolver(registerSchema),
     defaultValues: {
       email: "",
       password: "",
+      name: "",
     },
   });
 
-  async function onSubmit(values: z.infer<typeof loginSchema>) {
+  async function onSubmit(values: z.infer<typeof registerSchema>) {
     setError(null);
     startTransition(async () => {
-      const response = await loginAction(values);
+      const response = await registerAction(values);
       if (response.error) {
+        console.log("Datos enviados:", values);
         setError(response.error);
       } else {
-        router.push("/dashboard");
+        router.push("/login");
       }
     });
   }
@@ -44,12 +44,28 @@ export const LoginForm = () => {
     <div className="flex h-screen items-center justify-center bg-green-300">
       <div className="w-full max-w-lg rounded-lg bg-white p-8 shadow-lg">
         <h1 className="mb-8 text-center text-3xl font-bold text-black">
-          Iniciar Sesión
+          Registrarse
         </h1>
         <form
           className="flex flex-col gap-6"
           onSubmit={form.handleSubmit(onSubmit)}
         >
+          <div>
+            <Input
+              {...form.register("name")}
+              type="text"
+              label="Usuario"
+              variant="bordered"
+              placeholder="Ingresa tu correo electrónico"
+              fullWidth
+              className="rounded-lg text-black placeholder-gray-500"
+            />
+            {form.formState.errors.email && (
+              <p className="mt-1 text-sm text-red-500">
+                {form.formState.errors.email.message}
+              </p>
+            )}
+          </div>
           {/* Email Input */}
           <div>
             <Input
@@ -120,3 +136,4 @@ export const LoginForm = () => {
     </div>
   );
 };
+export default FormRegister;

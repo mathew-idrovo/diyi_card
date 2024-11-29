@@ -32,43 +32,46 @@ export default {
 
         // verificar si la contraseña es correcta
         const isValid = await bcrypt.compare(data.password, user.password);
+        console.log("Contraseña ingresada:", credentials?.password);
+        console.log("Contraseña almacenada:", user.password);
+        console.log("¿Contraseña válida?:", isValid);
 
         if (!isValid) {
           throw new Error("Incorrect password");
         }
 
-        // verificación de email
-        if (!user.emailVerified) {
-          const verifyTokenExits = await db.verificationToken.findFirst({
-            where: {
-              identifier: user.email,
-            },
-          });
+        // // verificación de email
+        // if (!user.emailVerified) {
+        //   const verifyTokenExits = await db.verificationToken.findFirst({
+        //     where: {
+        //       identifier: user.email,
+        //     },
+        //   });
 
-          // si existe un token, lo eliminamos
-          if (verifyTokenExits?.identifier) {
-            await db.verificationToken.delete({
-              where: {
-                identifier: user.email,
-              },
-            });
-          }
+        //   // si existe un token, lo eliminamos
+        //   if (verifyTokenExits?.identifier) {
+        //     await db.verificationToken.delete({
+        //       where: {
+        //         identifier: user.email,
+        //       },
+        //     });
+        //   }
 
-          const token = nanoid();
+        //   const token = nanoid();
 
-          await db.verificationToken.create({
-            data: {
-              identifier: user.email,
-              token,
-              expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
-            },
-          });
+        //   await db.verificationToken.create({
+        //     data: {
+        //       identifier: user.email,
+        //       token,
+        //       expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
+        //     },
+        //   });
 
-          // enviar email de verificación
-          //   await sendEmailVerification(user.email, token);
+        //   // enviar email de verificación
+        //   //   await sendEmailVerification(user.email, token);
 
-          throw new Error("Please check Email send verification");
-        }
+        //   throw new Error("Please check Email send verification");
+        // }
 
         return user;
       },

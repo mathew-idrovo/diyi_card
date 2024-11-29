@@ -13,7 +13,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     // Aquí es donde puedes agregar información adicional al token.
     jwt({ token, user }) {
       if (user) {
-        token.role = user;
+        token.role = user.role;
       }
       return token;
     },
